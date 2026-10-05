@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Test • Türkçe Ses Değerlendirme</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="card test-card">
+      <header class="test-header">
+        <div>
+          <p class="eyebrow">TÜRKÇE SES DEĞERLENDİRME</p>
+          <h1 id="participant-label">Katılımcı</h1>
+        </div>
+        <div class="progress-meta">
+          <span id="progress-text">1 / 10</span>
+          <button id="exit-button" type="button" class="text-button">Çık</button>
+        </div>
+      </header>
+
+      <div class="progress-track" aria-hidden="true">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+
+      <div id="question-area" class="question-area"></div>
+    </section>
+  </main>
+
+  <script src="js/questions.js"></script>
+  <script src="js/test.js"></script>
+</body>
+</html>
