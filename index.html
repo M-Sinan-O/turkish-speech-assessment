@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Türkçe Ses Değerlendirme</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="card hero">
+      <p class="eyebrow">DKT PROJE • DEMO</p>
+      <h1>Türkçe Ses Değerlendirme</h1>
+      <p class="lead">
+        Bu sürüm, otomatik puanlanan 10 soruluk teknik bir prototiptir.
+        Ses kayıt analizi veya yapay zekâ içermez.
+      </p>
+
+      <form id="start-form" class="start-form">
+        <label for="participant-code">Katılımcı kodu</label>
+        <input id="participant-code" name="participant-code" type="text"
+               maxlength="20" placeholder="Örn. P0001" autocomplete="off" required />
+        <button type="submit" class="primary">Teste Başla</button>
+      </form>
+
+      <div class="notice">
+        <strong>Not:</strong> Bu prototipte işitsel uyaranlar tarayıcının Türkçe
+        metin-seslendirme özelliğiyle verilir. Araştırma sürümünde sabit,
+        uzmanlarca hazırlanmış ses dosyaları kullanılmalıdır.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById('start-form');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const code = document.getElementById('participant-code').value.trim().toUpperCase();
+      if (!code) return;
+
+      localStorage.setItem('tsa_participant_code', code);
+      localStorage.removeItem('tsa_answers');
+      localStorage.removeItem('tsa_result');
+      localStorage.setItem('tsa_started_at', new Date().toISOString());
+      window.location.href = 'test.html';
+    });
+  </script>
+</body>
+</html>
