@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sonuç • Türkçe Ses Değerlendirme</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="card">
+      <p class="eyebrow">TEST SONUCU</p>
+      <h1 id="result-title">Sonuç</h1>
+
+      <div class="score-panel">
+        <div class="score-number" id="score-number">0%</div>
+        <div>
+          <strong id="score-detail">0 / 10</strong>
+          <p>Bu skor yalnızca demo sorularındaki doğru yanıt oranıdır; klinik tanı değildir.</p>
+        </div>
+      </div>
+
+      <h2>Alt testler</h2>
+      <div id="category-results" class="category-grid"></div>
+
+      <h2>Soru özeti</h2>
+      <div id="review-list" class="review-list"></div>
+
+      <div class="actions">
+        <a class="primary button-link" href="index.html">Yeni Test</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/questions.js"></script>
+  <script src="js/results.js"></script>
+</body>
+</html>
