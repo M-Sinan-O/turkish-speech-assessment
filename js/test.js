@@ -1,8 +1,9 @@
 (() => {
   const questions = window.TSA_QUESTIONS || [];
   const participantCode = localStorage.getItem("tsa_participant_code");
+  const sessionId = localStorage.getItem("tsa_session_id");
 
-  if (!participantCode) {
+  if (!participantCode || !sessionId) {
     window.location.href = "index.html";
     return;
   }
@@ -12,6 +13,7 @@
   const progressBar = document.getElementById("progress-bar");
   const questionArea = document.getElementById("question-area");
   const exitButton = document.getElementById("exit-button");
+  const saveMessage = document.getElementById("save-message");
 
   participantLabel.textContent = participantCode;
 
@@ -24,6 +26,20 @@
   }
 
   let index = Math.min(answers.length, questions.length);
+
+  function showSaveError(text) {
+    saveMessage.hidden = false;
+    saveMessage.textContent = text;
+  }
+
+  async function requireAuth() {
+    const { data } = await window.TSA_DB.auth.getSession();
+    if (!data.session) {
+      window.location.href = "login.html";
+      return false;
+    }
+    return true;
+  }
 
   function speak(text) {
     if (!("speechSynthesis" in window)) {
@@ -43,9 +59,9 @@
     window.speechSynthesis.speak(utterance);
   }
 
-  function renderQuestion() {
+  async function renderQuestion() {
     if (index >= questions.length) {
-      finishTest();
+      await finishTest();
       return;
     }
 
@@ -67,6 +83,7 @@
       <div class="options">${optionsHtml}</div>
     `;
 
+    saveMessage.hidden = true;
     const shownAt = performance.now();
 
     if (q.speak) {
@@ -76,7 +93,10 @@
     }
 
     questionArea.querySelectorAll(".option").forEach(button => {
-      button.addEventListener("click", () => {
+      button.addEventListener("click", async () => {
+        const allButtons = questionArea.querySelectorAll(".option");
+        allButtons.forEach(btn => btn.disabled = true);
+
         const selected = button.dataset.option;
         const responseTimeMs = Math.round(performance.now() - shownAt);
         const answer = {
@@ -89,18 +109,54 @@
           answered_at: new Date().toISOString()
         };
 
+        const { error } = await window.TSA_DB
+          .from("responses")
+          .upsert({
+            session_id: sessionId,
+            question_id: answer.question_id,
+            category: answer.category,
+            selected_option: answer.selected,
+            correct_option: answer.correct_option,
+            is_correct: answer.is_correct,
+            response_time_ms: answer.response_time_ms,
+            answered_at: answer.answered_at
+          }, { onConflict: "session_id,question_id" });
+
+        if (error) {
+          console.error(error);
+          showSaveError("Cevap kaydedilemedi: " + error.message);
+          allButtons.forEach(btn => btn.disabled = false);
+          return;
+        }
+
         answers.push(answer);
         localStorage.setItem("tsa_answers", JSON.stringify(answers));
         index += 1;
-        renderQuestion();
+        await renderQuestion();
       }, { once: true });
     });
   }
 
-  function finishTest() {
+  async function finishTest() {
     const correct = answers.filter(a => a.is_correct).length;
+
+    const { error } = await window.TSA_DB
+      .from("test_sessions")
+      .update({
+        status: "completed",
+        completed_at: new Date().toISOString()
+      })
+      .eq("id", sessionId);
+
+    if (error) {
+      console.error(error);
+      showSaveError("Test tamamlandı ancak oturum durumu güncellenemedi: " + error.message);
+      return;
+    }
+
     const result = {
       participant_code: participantCode,
+      session_id: sessionId,
       total: questions.length,
       correct,
       percentage: Math.round((correct / questions.length) * 100),
@@ -117,5 +173,7 @@
     window.location.href = "index.html";
   });
 
-  renderQuestion();
+  requireAuth().then(ok => {
+    if (ok) renderQuestion();
+  });
 })();
