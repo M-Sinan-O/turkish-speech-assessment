@@ -25,3 +25,13 @@ Supabase integration for:
 See [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
 
 > Research note: identifiable personal data should not be placed in the public GitHub repository.
+
+## DKT login security
+
+The `dkt2026` username is mapped in the browser to the internal Supabase Auth
+address `dkt2026@turkish-speech-assessment.local`. Its password is managed and
+verified only by Supabase Auth; never add it to this repository or to frontend
+code.
+
+Any temporary password used during setup must be replaced with a strong, unique
+password before collecting real research data.

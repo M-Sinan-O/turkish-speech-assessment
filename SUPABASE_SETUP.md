@@ -18,7 +18,18 @@ and run it once.
 
 ## 3. Create the first DKT/admin user
 
-Create a user under **Authentication > Users**.
+Create a user under **Authentication > Users** with the internal e-mail address:
+
+`dkt2026@turkish-speech-assessment.local`
+
+Because this internal address cannot receive confirmation mail, create it as a
+confirmed user. Set its password in the Supabase dashboard. The browser maps the public username
+`dkt2026` to this internal address, but the password is sent directly to and
+verified by Supabase Auth. Do not put the password in frontend code, commits or
+project documentation.
+
+> Before collecting real research data, replace any temporary setup password
+> with a strong, unique password.
 
 After the user exists, add that user's UUID to `app_users`:
 
@@ -38,8 +49,6 @@ to:
 `js/supabase-config.js`
 
 and replace the placeholder URL/key with the project's own values.
-
-The next development step will wire login, participant creation, sessions and responses to these tables.
 
 ## Data design
 

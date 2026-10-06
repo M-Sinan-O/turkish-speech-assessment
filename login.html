@@ -20,16 +20,30 @@
       <div class="auth-divider"><span>veya</span></div>
 
       <form id="login-form" class="start-form">
-        <label for="email">E-posta</label>
-        <input id="email" type="email" autocomplete="email" required />
+        <label for="username">Kullanıcı adı</label>
+        <input
+          id="username"
+          name="username"
+          type="text"
+          autocomplete="username"
+          autocapitalize="none"
+          spellcheck="false"
+          required
+        />
 
         <label for="password">Şifre</label>
-        <input id="password" type="password" autocomplete="current-password" required />
+        <input
+          id="password"
+          name="password"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
 
-        <button id="login-button" type="submit" class="primary">E-posta ile Giriş Yap</button>
+        <button id="login-button" type="submit" class="primary">Kullanıcı Adı ile Giriş Yap</button>
       </form>
 
-      <div id="login-message" class="notice" hidden></div>
+      <div id="login-message" class="notice" role="status" aria-live="polite" hidden></div>
     </section>
   </main>
 

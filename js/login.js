@@ -1,4 +1,7 @@
 (() => {
+  const DKT_USERNAME = "dkt2026";
+  const DKT_EMAIL = "dkt2026@turkish-speech-assessment.local";
+
   const form = document.getElementById("login-form");
   const button = document.getElementById("login-button");
   const githubButton = document.getElementById("github-login");
@@ -41,8 +44,16 @@
     button.disabled = true;
     button.textContent = "Giriş yapılıyor...";
 
-    const email = document.getElementById("email").value.trim();
+    const username = document.getElementById("username").value.trim().toLowerCase();
     const password = document.getElementById("password").value;
+    const email = username === DKT_USERNAME ? DKT_EMAIL : null;
+
+    if (!email) {
+      button.disabled = false;
+      button.textContent = "Kullanıcı Adı ile Giriş Yap";
+      showMessage("Kullanıcı adı veya şifre hatalı.", true);
+      return;
+    }
 
     const { error } = await window.TSA_DB.auth.signInWithPassword({
       email,
@@ -50,10 +61,10 @@
     });
 
     button.disabled = false;
-    button.textContent = "E-posta ile Giriş Yap";
+    button.textContent = "Kullanıcı Adı ile Giriş Yap";
 
     if (error) {
-      showMessage("Giriş başarısız: " + error.message, true);
+      showMessage("Kullanıcı adı veya şifre hatalı.", true);
       return;
     }
 
