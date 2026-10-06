@@ -264,3 +264,25 @@ button, .button-link {
   .review-item { grid-template-columns: 38px 1fr; }
   .review-status { grid-column: 2; }
 }
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 8px;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  height: 1px;
+  background: var(--border);
+  flex: 1;
+}
+
+button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
