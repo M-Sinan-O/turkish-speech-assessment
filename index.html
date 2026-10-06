@@ -29,8 +29,10 @@
         <label for="participant-code">Katılımcı kodu</label>
         <input id="participant-code" name="participant-code" type="text"
                maxlength="20" placeholder="Örn. P0001" autocomplete="off" required />
-        <button type="submit" class="primary">Teste Başla</button>
+        <button id="start-button" type="submit" class="primary">Teste Başla</button>
       </form>
+
+      <div id="db-message" class="notice" hidden></div>
 
       <div class="notice">
         <strong>Not:</strong> Bu prototipte işitsel uyaranlar tarayıcının Türkçe
@@ -44,19 +46,6 @@
   <script src="js/supabase-config.js"></script>
   <script src="js/supabase-client.js"></script>
   <script src="js/index-auth.js"></script>
-  <script>
-    const form = document.getElementById('start-form');
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const code = document.getElementById('participant-code').value.trim().toUpperCase();
-      if (!code) return;
-
-      localStorage.setItem('tsa_participant_code', code);
-      localStorage.removeItem('tsa_answers');
-      localStorage.removeItem('tsa_result');
-      localStorage.setItem('tsa_started_at', new Date().toISOString());
-      window.location.href = 'test.html';
-    });
-  </script>
+  <script src="js/start-session.js"></script>
 </body>
 </html>
