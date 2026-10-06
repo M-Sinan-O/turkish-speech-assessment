@@ -58,3 +58,6 @@ image is supplied, the existing emoji is displayed:
 
 Before collecting real research data, replace synthesized speech with
 standardized recordings produced and reviewed for the assessment protocol.
+
+
+Questions 6-8 use standardized ElevenLabs recordings stored in `assets/audio/`.
