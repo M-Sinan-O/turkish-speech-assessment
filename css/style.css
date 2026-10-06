@@ -26,6 +26,8 @@ body {
   margin: 48px auto;
 }
 
+.test-shell { width: min(1120px, calc(100% - 32px)); }
+
 .card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -139,7 +141,7 @@ button, .button-link {
   transition: width .25s ease;
 }
 
-.question-area { min-height: 360px; }
+.question-area { min-height: 520px; }
 
 .question-type {
   color: var(--muted);
@@ -169,6 +171,42 @@ button, .button-link {
   font-size: .9rem;
 }
 
+.stage-screen {
+  min-height: 430px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 10%;
+}
+
+.stage-icon {
+  display: grid;
+  place-items: center;
+  width: 132px;
+  height: 132px;
+  margin-bottom: 24px;
+  border-radius: 36px;
+  background: #eef3ff;
+  font-size: 4.5rem;
+}
+
+.stage-title {
+  margin: 0 0 14px;
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.stage-description {
+  max-width: 650px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.15rem;
+  line-height: 1.65;
+}
+
+.stage-start-button { margin-top: 30px; }
+
 .options {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -176,12 +214,12 @@ button, .button-link {
 }
 
 .option {
-  min-height: 120px;
-  padding: 18px;
+  min-height: 250px;
+  padding: 24px;
   border: 2px solid var(--border);
   background: #fff;
   border-radius: 18px;
-  text-align: left;
+  text-align: center;
   transition: transform .12s ease, border-color .12s ease, background .12s ease;
 }
 
@@ -191,8 +229,22 @@ button, .button-link {
   background: #f9fbff;
 }
 
-.option-emoji { display: block; font-size: 2.2rem; margin-bottom: 8px; }
-.option-label { font-size: 1.1rem; font-weight: 800; }
+.option-media {
+  min-height: 170px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+}
+
+.option-image {
+  width: 100%;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 14px;
+}
+
+.option-emoji { display: block; font-size: clamp(5rem, 10vw, 7rem); line-height: 1; }
+.option-label { font-size: 1.25rem; font-weight: 800; }
 
 .score-panel {
   display: flex;
@@ -269,6 +321,11 @@ button, .button-link {
   .score-panel { align-items: flex-start; flex-direction: column; gap: 10px; }
   .review-item { grid-template-columns: 38px 1fr; }
   .review-status { grid-column: 2; }
+  .question-area { min-height: 440px; }
+  .stage-screen { min-height: 360px; padding: 20px 0; }
+  .option { min-height: 210px; }
+  .option-media { min-height: 135px; }
+  .option-image { height: 145px; }
 }
 
 .auth-divider {

@@ -4,7 +4,7 @@ Web-based Turkish speech / phonological assessment prototype for a DKT research 
 
 ## Current MVP
 
-- 10-question browser demo
+- 10-question, four-stage browser demo
 - Rule-based automatic scoring
 - Response-time tracking
 - Category-level results
@@ -38,7 +38,23 @@ password before collecting real research data.
 
 ## Audio note
 
-The browser speech synthesizer is used only for the current demo. Auditory test
-items are spoken twice at a reduced rate with the best available Turkish voice.
+The browser speech synthesizer is used only for the current demo. Its default
+voice, rate, pitch, volume, repetitions and autoplay behavior can be changed in
+`TSA_AUDIO_SETTINGS` at the top of `js/questions.js`.
+
+For a standardized recording, add an `audioSrc` property to a question. It takes
+priority over synthesized speech:
+
+```js
+audioSrc: "assets/audio/q006.mp3"
+```
+
+Question options also support a real image through an `image` property. If no
+image is supplied, the existing emoji is displayed:
+
+```js
+{ id: "A", label: "Kaz", image: "assets/images/kaz.webp", emoji: "🪿" }
+```
+
 Before collecting real research data, replace synthesized speech with
 standardized recordings produced and reviewed for the assessment protocol.

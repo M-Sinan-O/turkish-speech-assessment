@@ -1,6 +1,45 @@
+window.TSA_AUDIO_SETTINGS = {
+  // Set preferredVoiceName to an installed Turkish voice name when needed.
+  // A question-level audioSrc recording always takes priority over browser speech.
+  preferredVoiceName: "",
+  rate: 0.72,
+  pitch: 1,
+  volume: 1,
+  repetitions: 2,
+  autoplay: true
+};
+
+window.TSA_STAGES = [
+  {
+    id: "initial",
+    title: "Başlangıç sesleri",
+    description: "Görsellere dikkatle bakın ve sözcüğün başlangıç sesine göre seçim yapın.",
+    icon: "▶️"
+  },
+  {
+    id: "final",
+    title: "Bitiş sesleri",
+    description: "Bu bölümde sözcüklerin sonundaki sesi düşünerek doğru görseli seçin.",
+    icon: "🔚"
+  },
+  {
+    id: "listening",
+    title: "İşitsel ayırt etme",
+    description: "Sesi dinleyin. Gerekirse yeniden oynatın ve duyduğunuz sözcüğü seçin.",
+    icon: "🔊"
+  },
+  {
+    id: "awareness",
+    title: "Ses farkındalığı",
+    description: "Sözcüğün içinde verilen sesin bulunup bulunmadığını değerlendirerek seçim yapın.",
+    icon: "👂"
+  }
+];
+
 window.TSA_QUESTIONS = [
   {
     id: "Q001",
+    stage: "initial",
     category: "Başlangıç sesi",
     prompt: "Hangisi /ş/ sesiyle başlar?",
     options: [
@@ -11,6 +50,7 @@ window.TSA_QUESTIONS = [
   },
   {
     id: "Q002",
+    stage: "initial",
     category: "Başlangıç sesi",
     prompt: "Hangisi /k/ sesiyle başlar?",
     options: [
@@ -21,6 +61,7 @@ window.TSA_QUESTIONS = [
   },
   {
     id: "Q003",
+    stage: "initial",
     category: "Başlangıç sesi",
     prompt: "Hangisi /m/ sesiyle başlar?",
     options: [
@@ -31,6 +72,7 @@ window.TSA_QUESTIONS = [
   },
   {
     id: "Q004",
+    stage: "final",
     category: "Bitiş sesi",
     prompt: "Hangisi /ş/ sesiyle biter?",
     options: [
@@ -41,6 +83,7 @@ window.TSA_QUESTIONS = [
   },
   {
     id: "Q005",
+    stage: "final",
     category: "Bitiş sesi",
     prompt: "Hangisi /k/ sesiyle biter?",
     options: [
@@ -51,6 +94,7 @@ window.TSA_QUESTIONS = [
   },
   {
     id: "Q006",
+    stage: "listening",
     category: "İşitsel ayırt etme",
     prompt: "Dinlediğin kelimeyi seç.",
     speak: "kaz",
@@ -62,6 +106,7 @@ window.TSA_QUESTIONS = [
   },
   {
     id: "Q007",
+    stage: "listening",
     category: "İşitsel ayırt etme",
     prompt: "Dinlediğin kelimeyi seç.",
     speak: "taş",
@@ -73,6 +118,7 @@ window.TSA_QUESTIONS = [
   },
   {
     id: "Q008",
+    stage: "listening",
     category: "İşitsel ayırt etme",
     prompt: "Dinlediğin kelimeyi seç.",
     speak: "dal",
@@ -84,6 +130,7 @@ window.TSA_QUESTIONS = [
   },
   {
     id: "Q009",
+    stage: "awareness",
     category: "Ses farkındalığı",
     prompt: "Hangisinin içinde /r/ sesi vardır?",
     options: [
@@ -94,6 +141,7 @@ window.TSA_QUESTIONS = [
   },
   {
     id: "Q010",
+    stage: "awareness",
     category: "Ses farkındalığı",
     prompt: "Hangisinin içinde /s/ sesi vardır?",
     options: [
