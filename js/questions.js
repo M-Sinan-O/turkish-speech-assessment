@@ -98,6 +98,7 @@ window.TSA_QUESTIONS = [
     category: "İşitsel ayırt etme",
     prompt: "Dinlediğin kelimeyi seç.",
     speak: "kaz",
+    audioSrc: "assets/audio/q006-kaz.mp3",
     options: [
       { id: "A", label: "Kaz", emoji: "🪿" },
       { id: "B", label: "Kız", emoji: "👧" }
@@ -110,6 +111,7 @@ window.TSA_QUESTIONS = [
     category: "İşitsel ayırt etme",
     prompt: "Dinlediğin kelimeyi seç.",
     speak: "taş",
+    audioSrc: "assets/audio/q007-tas.mp3",
     options: [
       { id: "A", label: "Kaş", emoji: "👁️" },
       { id: "B", label: "Taş", emoji: "🪨" }
@@ -122,6 +124,7 @@ window.TSA_QUESTIONS = [
     category: "İşitsel ayırt etme",
     prompt: "Dinlediğin kelimeyi seç.",
     speak: "dal",
+    audioSrc: "assets/audio/q008-dal.mp3",
     options: [
       { id: "A", label: "Bal", emoji: "🍯" },
       { id: "B", label: "Dal", emoji: "🌿" }
