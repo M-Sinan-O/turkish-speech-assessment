@@ -9,8 +9,17 @@
 <body>
   <main class="shell">
     <section class="card hero">
-      <p class="eyebrow">DKT PROJE • DEMO</p>
-      <h1>Türkçe Ses Değerlendirme</h1>
+      <div class="test-header">
+        <div>
+          <p class="eyebrow">DKT PROJE • DEMO</p>
+          <h1>Türkçe Ses Değerlendirme</h1>
+        </div>
+        <div class="progress-meta">
+          <span id="current-user">Yetkili kullanıcı</span>
+          <button id="logout-button" type="button" class="text-button">Çıkış</button>
+        </div>
+      </div>
+
       <p class="lead">
         Bu sürüm, otomatik puanlanan 10 soruluk teknik bir prototiptir.
         Ses kayıt analizi veya yapay zekâ içermez.
@@ -31,6 +40,10 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/index-auth.js"></script>
   <script>
     const form = document.getElementById('start-form');
     form.addEventListener('submit', (event) => {
