@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DKT Girişi • Türkçe Ses Değerlendirme</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="card hero">
+      <p class="eyebrow">DKT PROJE</p>
+      <h1>DKT Girişi</h1>
+      <p class="lead">
+        Bu alan yalnızca yetkili araştırmacı ve DKT kullanıcıları içindir.
+      </p>
+
+      <form id="login-form" class="start-form">
+        <label for="email">E-posta</label>
+        <input id="email" type="email" autocomplete="email" required />
+
+        <label for="password">Şifre</label>
+        <input id="password" type="password" autocomplete="current-password" required />
+
+        <button id="login-button" type="submit" class="primary">Giriş Yap</button>
+      </form>
+
+      <div id="login-message" class="notice" hidden></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/login.js"></script>
+</body>
+</html>
