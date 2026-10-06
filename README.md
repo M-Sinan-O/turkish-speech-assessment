@@ -35,3 +35,10 @@ code.
 
 Any temporary password used during setup must be replaced with a strong, unique
 password before collecting real research data.
+
+## Audio note
+
+The browser speech synthesizer is used only for the current demo. Auditory test
+items are spoken twice at a reduced rate with the best available Turkish voice.
+Before collecting real research data, replace synthesized speech with
+standardized recordings produced and reviewed for the assessment protocol.

@@ -14,6 +14,7 @@
   const questionArea = document.getElementById("question-area");
   const exitButton = document.getElementById("exit-button");
   const saveMessage = document.getElementById("save-message");
+  const speakButtonText = "🔊 Kelimeyi Dinle";
 
   participantLabel.textContent = participantCode;
 
@@ -26,6 +27,9 @@
   }
 
   let index = Math.min(answers.length, questions.length);
+  let speechRequestId = 0;
+  let autoplayTimer = null;
+  let warnedAboutTurkishVoice = false;
 
   function showSaveError(text) {
     saveMessage.hidden = false;
@@ -41,25 +45,103 @@
     return true;
   }
 
-  function speak(text) {
+  function chooseTurkishVoice(voices) {
+    const turkishVoices = voices.filter(voice =>
+      voice.lang && voice.lang.toLowerCase().startsWith("tr")
+    );
+
+    return turkishVoices.sort((a, b) => {
+      const score = voice => {
+        const language = voice.lang.toLowerCase();
+        const name = voice.name.toLowerCase();
+        let value = language === "tr-tr" ? 100 : 50;
+        if (/natural|online/.test(name)) value += 30;
+        if (/emel|tolga|google/.test(name)) value += 20;
+        if (voice.default) value += 5;
+        return value;
+      };
+
+      return score(b) - score(a);
+    })[0] || null;
+  }
+
+  function loadVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length) return Promise.resolve(voices);
+
+    return new Promise(resolve => {
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        window.speechSynthesis.removeEventListener("voiceschanged", finish);
+        resolve(window.speechSynthesis.getVoices());
+      };
+
+      window.speechSynthesis.addEventListener("voiceschanged", finish);
+      setTimeout(finish, 1000);
+    });
+  }
+
+  async function speak(word, speakButton) {
     if (!("speechSynthesis" in window)) {
       alert("Bu tarayıcı metin-seslendirme özelliğini desteklemiyor.");
       return;
     }
 
+    const requestId = ++speechRequestId;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "tr-TR";
-    utterance.rate = 0.85;
+    speakButton.disabled = true;
+    speakButton.textContent = "🔊 Ses hazırlanıyor...";
 
-    const voices = window.speechSynthesis.getVoices();
-    const turkishVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith("tr"));
+    const voices = await loadVoices();
+    if (requestId !== speechRequestId || !speakButton.isConnected) return;
+
+    const utterance = new SpeechSynthesisUtterance(
+      `Dikkatle dinleyin. ${word}. Tekrar: ${word}.`
+    );
+    utterance.lang = "tr-TR";
+    utterance.rate = 0.72;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    const turkishVoice = chooseTurkishVoice(voices);
     if (turkishVoice) utterance.voice = turkishVoice;
+
+    if (!turkishVoice && !warnedAboutTurkishVoice) {
+      warnedAboutTurkishVoice = true;
+      showSaveError(
+        "Bu cihazda Türkçe konuşma sesi bulunamadı. Ses kalitesi tarayıcıya göre değişebilir."
+      );
+    }
+
+    const resetButton = () => {
+      if (requestId !== speechRequestId || !speakButton.isConnected) return;
+      speakButton.disabled = false;
+      speakButton.textContent = speakButtonText;
+    };
+
+    utterance.onstart = () => {
+      if (requestId === speechRequestId && speakButton.isConnected) {
+        speakButton.textContent = "🔊 Dinleniyor...";
+      }
+    };
+    utterance.onend = resetButton;
+    utterance.onerror = event => {
+      resetButton();
+      if (event.error !== "canceled" && event.error !== "interrupted") {
+        showSaveError("Ses oynatılamadı. Lütfen tekrar deneyin.");
+      }
+    };
 
     window.speechSynthesis.speak(utterance);
   }
 
   async function renderQuestion() {
+    clearTimeout(autoplayTimer);
+    speechRequestId += 1;
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+
     if (index >= questions.length) {
       await finishTest();
       return;
@@ -79,7 +161,10 @@
     questionArea.innerHTML = `
       <div class="question-type">${q.category}</div>
       <h2 class="question-title">${q.prompt}</h2>
-      ${q.speak ? '<button id="speak-button" class="speak-button" type="button">🔊 Sesi Dinle</button>' : ''}
+      ${q.speak ? `
+        <button id="speak-button" class="speak-button" type="button">${speakButtonText}</button>
+        <p class="audio-hint">Kelime daha anlaşılır olması için iki kez okunur.</p>
+      ` : ''}
       <div class="options">${optionsHtml}</div>
     `;
 
@@ -88,12 +173,16 @@
 
     if (q.speak) {
       const speakButton = document.getElementById("speak-button");
-      speakButton.addEventListener("click", () => speak(q.speak));
-      setTimeout(() => speak(q.speak), 250);
+      speakButton.addEventListener("click", () => speak(q.speak, speakButton));
+      autoplayTimer = setTimeout(() => speak(q.speak, speakButton), 600);
     }
 
     questionArea.querySelectorAll(".option").forEach(button => {
       button.addEventListener("click", async () => {
+        clearTimeout(autoplayTimer);
+        speechRequestId += 1;
+        if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+
         const allButtons = questionArea.querySelectorAll(".option");
         allButtons.forEach(btn => btn.disabled = true);
 
