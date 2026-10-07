@@ -11,7 +11,8 @@
     volume: 1,
     repetitions: 1,
     autoplay: false,
-    ...(window.TSA_AUDIO_SETTINGS || {})
+    ...(window.TSA_AUDIO_SETTINGS || {}),
+    ...(assessmentForm?.audioSettings || {})
   };
   const participantCode = localStorage.getItem("tsa_participant_code");
   const sessionId = localStorage.getItem("tsa_session_id");
@@ -87,13 +88,25 @@
       if (preferredVoice) return preferredVoice;
     }
 
+    const preferredNames = Array.isArray(audioSettings.preferredVoiceNames)
+      ? audioSettings.preferredVoiceNames.map(name => String(name).trim().toLowerCase()).filter(Boolean)
+      : [];
+    for (const nameHint of preferredNames) {
+      const preferredVoice = turkishVoices.find(voice =>
+        voice.name.toLowerCase().includes(nameHint)
+      );
+      if (preferredVoice) return preferredVoice;
+    }
+
     return turkishVoices.sort((a, b) => {
       const score = voice => {
         const language = voice.lang.toLowerCase();
         const name = voice.name.toLowerCase();
         let value = language === "tr-tr" ? 100 : 50;
-        if (/natural|online/.test(name)) value += 30;
-        if (/emel|tolga|google/.test(name)) value += 20;
+        if (/natural|neural|premium|enhanced/.test(name)) value += 80;
+        if (/online/.test(name)) value += 25;
+        if (/emel|yelda|seda|filiz|burcu|female|kadın|woman|google türkçe/.test(name)) value += 55;
+        if (audioSettings.preferFemaleVoice && /tolga|cem|male|erkek|man/.test(name)) value -= 45;
         if (voice.default) value += 5;
         return value;
       };
@@ -253,21 +266,49 @@
   }
 
   function optionMedia(option) {
+    if (option.sprite) {
+      return spriteImage(option.sprite, "option-sprite");
+    }
     if (option.image) {
       return `<img class="option-image" src="${escapeHtml(option.image)}" alt="" />`;
     }
     return `<span class="option-emoji" aria-hidden="true">${escapeHtml(option.emoji || "")}</span>`;
   }
 
+  function spriteImage(sprite, className) {
+    const sheetWidth = Math.max(1, Number(sprite.sheetWidth) || 1);
+    const sheetHeight = Math.max(1, Number(sprite.sheetHeight) || 1);
+    const width = Math.max(1, Number(sprite.width) || sheetWidth);
+    const height = Math.max(1, Number(sprite.height) || sheetHeight);
+    const x = Math.min(sheetWidth - width, Math.max(0, Number(sprite.x) || 0));
+    const y = Math.min(sheetHeight - height, Math.max(0, Number(sprite.y) || 0));
+    const positionX = sheetWidth === width ? 0 : (x * 100) / (sheetWidth - width);
+    const positionY = sheetHeight === height ? 0 : (y * 100) / (sheetHeight - height);
+    const aspect = width / height;
+    const style = [
+      `background-image:url('${escapeHtml(sprite.src)}')`,
+      `background-size:${(sheetWidth / width) * 100}% ${(sheetHeight / height) * 100}%`,
+      `background-position:${positionX}% ${positionY}%`,
+      `aspect-ratio:${aspect} / 1`
+    ].join(";");
+    return `<span class="sprite-image ${className}" aria-hidden="true" style="${style}"></span>`;
+  }
+
   function renderAudioControl(question) {
     if (!question.speak && !question.audioSrc) return "";
     return `
       <button id="speak-button" class="speak-button" type="button">${speakButtonText}</button>
-      <p class="audio-hint">Her dinleme kaydedilir. Gerekirse uygulayıcı yönergeyi aynı biçimde okuyabilir.</p>`;
+      <p class="audio-hint">Sakin ve yumuşak Türkçe kadın sesi tercih edilir. Her yeniden dinleme kaydedilir.</p>`;
   }
 
   function renderStimulus(question) {
     if (!question.stimulus) return "";
+    if (question.stimulus.sprite) {
+      return `
+        <div class="stimulus-card" role="img" aria-label="${escapeHtml(question.stimulus.label || "Görsel uyaran")}">
+          ${spriteImage(question.stimulus.sprite, "stimulus-sprite")}
+        </div>`;
+    }
     if (question.stimulus.image) {
       return `<div class="stimulus-card"><img src="${escapeHtml(question.stimulus.image)}" alt="${escapeHtml(question.stimulus.label || "")}" /></div>`;
     }
