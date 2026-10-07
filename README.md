@@ -28,8 +28,8 @@ The design rationale for the language-disorder research group is documented in
 the core receptive/expressive language profile from the optional phonological
 awareness module.
 
-> The included questions, emoji visuals and browser-generated speech are only an
-> interaction prototype. They require DKT review, original licensed artwork,
+> The included questions, generated picture cards and browser-generated speech are only an
+> interaction prototype. They require DKT review, expert-approved final artwork,
 > standardized recordings and psychometric validation before research use.
 
 > Research note: identifiable personal data should not be placed in the public GitHub repository.
@@ -50,6 +50,11 @@ The browser speech synthesizer is used only for the current pilot. Its default
 voice, rate, pitch, volume, repetitions and autoplay behavior can be changed in
 `TSA_AUDIO_SETTINGS` at the top of `js/questions.js`.
 
+The current profile prefers a natural Turkish female voice when the device
+provides one. The 2–3-year form uses a slightly slower, softer setting; the
+4–7-year form stays closer to ordinary speaking speed. Browser voice availability
+still varies by device and operating system.
+
 For a standardized recording, add an `audioSrc` property to a question. It takes
 priority over synthesized speech:
 
@@ -64,8 +69,8 @@ image is supplied, the existing emoji is displayed:
 { id: "A", label: "Kaz", image: "assets/images/kaz.webp", emoji: "🪿" }
 ```
 
-Before collecting real research data, replace synthesized speech and emoji
-placeholders with standardized recordings and licensed, expert-reviewed visuals.
+Before collecting real research data, replace synthesized speech with standardized
+recordings and have every generated picture card independently reviewed by DKT experts.
 
 The existing ElevenLabs examples remain in `assets/audio/`. New form recordings
 can be added one question at a time with `audioSrc`; each recording then takes
