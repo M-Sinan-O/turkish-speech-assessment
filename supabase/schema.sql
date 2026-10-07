@@ -1,5 +1,5 @@
--- Turkish Speech Assessment - Supabase schema
--- MVP: DKT login + participant codes + test sessions + responses
+-- Turkish Language Assessment - Supabase schema
+-- DKT login + coded participants + age forms + sessions + scored responses
 -- No audio analysis and no AI.
 
 create extension if not exists pgcrypto;
@@ -32,6 +32,7 @@ create table if not exists public.test_sessions (
   created_by uuid not null references auth.users(id),
   status text not null default 'in_progress'
     check (status in ('in_progress', 'completed', 'cancelled')),
+  assessment_form text,
   started_at timestamptz not null default now(),
   completed_at timestamptz
 );
@@ -44,10 +45,29 @@ create table if not exists public.responses (
   selected_option text not null,
   correct_option text not null,
   is_correct boolean not null,
+  response_kind text,
+  score smallint check (score between 0 and 2),
+  max_score smallint check (max_score between 1 and 2),
+  replay_count integer not null default 0 check (replay_count >= 0),
+  cue_level smallint not null default 0 check (cue_level between 0 and 3),
+  assisted_correct boolean not null default false,
   response_time_ms integer check (response_time_ms >= 0),
   answered_at timestamptz not null default now(),
   unique (session_id, question_id)
 );
+
+-- Existing projects can safely rerun this file; these statements add the new
+-- language-profile fields without changing earlier response records.
+alter table public.test_sessions
+  add column if not exists assessment_form text;
+
+alter table public.responses
+  add column if not exists response_kind text,
+  add column if not exists score smallint check (score between 0 and 2),
+  add column if not exists max_score smallint check (max_score between 1 and 2),
+  add column if not exists replay_count integer not null default 0 check (replay_count >= 0),
+  add column if not exists cue_level smallint not null default 0 check (cue_level between 0 and 3),
+  add column if not exists assisted_correct boolean not null default false;
 
 create index if not exists idx_participants_created_by
   on public.participants(created_by);
