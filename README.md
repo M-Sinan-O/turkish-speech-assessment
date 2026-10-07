@@ -1,28 +1,36 @@
-# Turkish Speech Assessment
+# Turkish Language Assessment
 
-Web-based Turkish speech / phonological assessment prototype for a DKT research project.
+Web-based Turkish language-profile assessment prototype for a DKT research project.
 
 ## Current MVP
 
-- 10-question, four-stage browser demo
-- Rule-based automatic scoring
+- Two separate pilot forms: 2–3 years and 4–7 years
+- 10-item adult-assisted early-language flow for ages 2–3
+- 15-item receptive/expressive language flow for ages 4–7
+- Automatic scoring for selections and 0/1/2 live clinician scoring for spoken answers
+- Help-level and audio-replay tracking
 - Response-time tracking
-- Category-level results
+- Category-level raw-score profiles
 - No AI
-- No audio analysis
-- Local browser storage for the current demo
+- No speech recognition or required audio recording
+- Supabase session/response storage with local browser continuity
 
-## Next stage
+## Supabase
 
-Supabase integration for:
-
-- DKT authentication
-- coded participants
-- test sessions
-- response records
-- later, private research audio storage
+The app uses Supabase for DKT authentication, coded participants, test sessions
+and item-level response records. Existing installations must run the migration
+listed in [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
 
 See [SUPABASE_SETUP.md](SUPABASE_SETUP.md).
+
+The design rationale for the language-disorder research group is documented in
+[DIL_BOZUKLUGU_TEST_TASARIMI.md](DIL_BOZUKLUGU_TEST_TASARIMI.md). It separates
+the core receptive/expressive language profile from the optional phonological
+awareness module.
+
+> The included questions, emoji visuals and browser-generated speech are only an
+> interaction prototype. They require DKT review, original licensed artwork,
+> standardized recordings and psychometric validation before research use.
 
 > Research note: identifiable personal data should not be placed in the public GitHub repository.
 
@@ -38,7 +46,7 @@ password before collecting real research data.
 
 ## Audio note
 
-The browser speech synthesizer is used only for the current demo. Its default
+The browser speech synthesizer is used only for the current pilot. Its default
 voice, rate, pitch, volume, repetitions and autoplay behavior can be changed in
 `TSA_AUDIO_SETTINGS` at the top of `js/questions.js`.
 
@@ -56,8 +64,9 @@ image is supplied, the existing emoji is displayed:
 { id: "A", label: "Kaz", image: "assets/images/kaz.webp", emoji: "🪿" }
 ```
 
-Before collecting real research data, replace synthesized speech with
-standardized recordings produced and reviewed for the assessment protocol.
+Before collecting real research data, replace synthesized speech and emoji
+placeholders with standardized recordings and licensed, expert-reviewed visuals.
 
-
-Questions 6-8 use standardized ElevenLabs recordings stored in `assets/audio/`.
+The existing ElevenLabs examples remain in `assets/audio/`. New form recordings
+can be added one question at a time with `audioSrc`; each recording then takes
+priority over the temporary browser voice.

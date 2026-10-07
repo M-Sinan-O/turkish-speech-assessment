@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Türkçe Ses Değerlendirme</title>
+  <title>Türkçe Dil Değerlendirme</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -11,8 +11,8 @@
     <section class="card hero">
       <div class="test-header">
         <div>
-          <p class="eyebrow">DKT PROJE • DEMO</p>
-          <h1>Türkçe Ses Değerlendirme</h1>
+          <p class="eyebrow">DKT PROJE • ARAŞTIRMA PROTOTİPİ</p>
+          <h1>Türkçe Dil Değerlendirme</h1>
         </div>
         <div class="progress-meta">
           <span id="current-user">Yetkili kullanıcı</span>
@@ -21,23 +21,32 @@
       </div>
 
       <p class="lead">
-        Bu sürüm, otomatik puanlanan 10 soruluk teknik bir prototiptir.
-        Ses kayıt analizi veya yapay zekâ içermez.
+        Yaş grubuna göre iki ayrı pilot form bulunur. Seçmeli görevler otomatik,
+        sözlü yanıtlar uygulayıcı tarafından puanlanır. Ses kaydı veya yapay zekâ kullanılmaz.
       </p>
 
       <form id="start-form" class="start-form">
         <label for="participant-code">Katılımcı kodu</label>
         <input id="participant-code" name="participant-code" type="text"
                maxlength="20" placeholder="Örn. P0001" autocomplete="off" required />
+        <label for="assessment-form">Yaş grubu ve uygulama formu</label>
+        <select id="assessment-form" name="assessment-form" required>
+          <option value="early_2_3">2–3 yaş • Yetişkin/uygulayıcı destekli</option>
+          <option value="child_4_7">4–7 yaş • Çocuk odaklı dil alanı profili</option>
+        </select>
+        <p class="form-help">
+          2–3 yaş formu erken dil profilini; 4–7 yaş formu alıcı ve ifade edici dil
+          alanlarını gösterir. İki formun puanları birbirleriyle karşılaştırılmaz.
+        </p>
         <button id="start-button" type="submit" class="primary">Teste Başla</button>
       </form>
 
       <div id="db-message" class="notice" hidden></div>
 
       <div class="notice">
-        <strong>Not:</strong> Bu prototipte işitsel uyaranlar tarayıcının Türkçe
-        metin-seslendirme özelliğiyle verilir. Araştırma sürümünde sabit,
-        uzmanlarca hazırlanmış ses dosyaları kullanılmalıdır.
+        <strong>Önemli:</strong> Bunlar uzman incelemesi ve pilot çalışma için hazırlanmış
+        örnek maddelerdir; klinik tanı veya standart puan üretmez. Araştırma öncesinde
+        özgün görseller ve uzmanlarca onaylanmış sabit ses kayıtları kullanılmalıdır.
       </div>
     </section>
   </main>

@@ -16,6 +16,14 @@ Open **SQL Editor** in Supabase, paste the contents of:
 
 and run it once.
 
+If the earlier speech-demo schema is already installed, run only this migration
+in **SQL Editor** before using the two new forms:
+
+`supabase/migrations/20261007_add_language_profile_forms.sql`
+
+It adds the selected age form, 0/1/2 item score, audio replay count and help
+level fields. It does not delete existing participants, sessions or responses.
+
 ## 3. Create the first DKT/admin user
 
 Create a user under **Authentication > Users** with the internal e-mail address:
@@ -55,3 +63,7 @@ and replace the placeholder URL/key with the project's own values.
 The MVP stores only coded participant identifiers, such as `P0001`.
 
 No participant names, phone numbers or e-mail addresses belong in the research tables.
+
+The `early_2_3` and `child_4_7` forms are stored separately. Their raw scores
+must not be merged or compared as if they used the same scale. The current items
+are pilot examples and do not produce a diagnosis or standardized score.
