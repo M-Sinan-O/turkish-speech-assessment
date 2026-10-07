@@ -1,24 +1,28 @@
 (() => {
-  const questions = window.TSA_QUESTIONS || [];
-  const stages = window.TSA_STAGES || [];
+  const forms = window.TSA_FORMS || {};
+  const formId = localStorage.getItem("tsa_assessment_form") || window.TSA_DEFAULT_FORM;
+  const assessmentForm = forms[formId] || forms[window.TSA_DEFAULT_FORM];
+  const questions = assessmentForm?.questions || [];
+  const stages = assessmentForm?.stages || [];
   const audioSettings = {
     preferredVoiceName: "",
-    rate: 0.72,
+    rate: 0.78,
     pitch: 1,
     volume: 1,
-    repetitions: 2,
-    autoplay: true,
+    repetitions: 1,
+    autoplay: false,
     ...(window.TSA_AUDIO_SETTINGS || {})
   };
   const participantCode = localStorage.getItem("tsa_participant_code");
   const sessionId = localStorage.getItem("tsa_session_id");
 
-  if (!participantCode || !sessionId) {
+  if (!participantCode || !sessionId || !assessmentForm) {
     window.location.href = "index.html";
     return;
   }
 
   const participantLabel = document.getElementById("participant-label");
+  const formLabel = document.getElementById("form-label");
   const progressText = document.getElementById("progress-text");
   const progressBar = document.getElementById("progress-bar");
   const questionArea = document.getElementById("question-area");
@@ -27,6 +31,7 @@
   const speakButtonText = "🔊 Sesi Dinle";
 
   participantLabel.textContent = participantCode;
+  formLabel.textContent = assessmentForm.label.toLocaleUpperCase("tr-TR");
 
   let answers = [];
   try {
@@ -40,8 +45,21 @@
   let speechRequestId = 0;
   let autoplayTimer = null;
   let activeAudio = null;
+  let audioPlayCount = 0;
   let warnedAboutTurkishVoice = false;
-  const shownStageIds = new Set();
+  let supportsExtendedResponses = true;
+  const shownStageIds = new Set(answers.map(answer => {
+    return questions.find(question => question.id === answer.question_id)?.stage;
+  }).filter(Boolean));
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
 
   function showSaveError(text) {
     saveMessage.hidden = false;
@@ -61,7 +79,6 @@
     const turkishVoices = voices.filter(voice =>
       voice.lang && voice.lang.toLowerCase().startsWith("tr")
     );
-
     const preferredName = String(audioSettings.preferredVoiceName || "").trim().toLowerCase();
     if (preferredName) {
       const preferredVoice = turkishVoices.find(voice =>
@@ -80,7 +97,6 @@
         if (voice.default) value += 5;
         return value;
       };
-
       return score(b) - score(a);
     })[0] || null;
   }
@@ -88,7 +104,6 @@
   function loadVoices() {
     const voices = window.speechSynthesis.getVoices();
     if (voices.length) return Promise.resolve(voices);
-
     return new Promise(resolve => {
       let finished = false;
       const finish = () => {
@@ -97,7 +112,6 @@
         window.speechSynthesis.removeEventListener("voiceschanged", finish);
         resolve(window.speechSynthesis.getVoices());
       };
-
       window.speechSynthesis.addEventListener("voiceschanged", finish);
       setTimeout(finish, 1000);
     });
@@ -127,7 +141,6 @@
     audio.preload = "auto";
     audio.volume = Number(question.audioVolume ?? audioSettings.volume);
     audio.playbackRate = Number(question.audioRate ?? 1);
-
     audio.addEventListener("playing", () => {
       if (requestId === speechRequestId && speakButton.isConnected) {
         speakButton.textContent = "🔊 Dinleniyor...";
@@ -140,30 +153,23 @@
     audio.addEventListener("error", () => {
       if (activeAudio === audio) activeAudio = null;
       resetSpeakButton(speakButton, requestId);
-      showSaveError("Ses kaydı oynatılamadı. Lütfen dosya yolunu kontrol edin.");
+      showSaveError("Ses kaydı oynatılamadı. Dosya yolunu kontrol edin.");
     });
-
     try {
       await audio.play();
     } catch (error) {
       if (activeAudio === audio) activeAudio = null;
       resetSpeakButton(speakButton, requestId);
-      if (error.name === "NotAllowedError") {
-        showSaveError("Sesi başlatmak için Ses Dinle düğmesine dokunun.");
-      } else {
-        showSaveError("Ses kaydı oynatılamadı. Lütfen tekrar deneyin.");
-      }
+      showSaveError(error.name === "NotAllowedError"
+        ? "Sesi başlatmak için Ses Dinle düğmesine dokunun."
+        : "Ses kaydı oynatılamadı. Lütfen tekrar deneyin.");
     }
   }
 
-  function buildSpeechText(word) {
+  function buildSpeechText(text) {
     const repetitions = Math.max(1, Number(audioSettings.repetitions) || 1);
-    if (repetitions === 1) return `Dikkatle dinleyin. ${word}.`;
-
-    return [
-      `Dikkatle dinleyin. ${word}.`,
-      ...Array.from({ length: repetitions - 1 }, () => `Tekrar: ${word}.`)
-    ].join(" " );
+    if (repetitions === 1) return text;
+    return [text, ...Array.from({ length: repetitions - 1 }, () => `Tekrar: ${text}`)].join(" ");
   }
 
   async function speak(question, speakButton) {
@@ -171,12 +177,10 @@
       alert("Bu tarayıcı metin-seslendirme özelliğini desteklemiyor.");
       return;
     }
-
     const requestId = ++speechRequestId;
     window.speechSynthesis.cancel();
     speakButton.disabled = true;
     speakButton.textContent = "🔊 Ses hazırlanıyor...";
-
     const voices = await loadVoices();
     if (requestId !== speechRequestId || !speakButton.isConnected) return;
 
@@ -185,19 +189,13 @@
     utterance.rate = Number(question.speechRate ?? audioSettings.rate);
     utterance.pitch = Number(question.speechPitch ?? audioSettings.pitch);
     utterance.volume = Number(question.audioVolume ?? audioSettings.volume);
-
     const turkishVoice = chooseTurkishVoice(voices);
     if (turkishVoice) utterance.voice = turkishVoice;
-
     if (!turkishVoice && !warnedAboutTurkishVoice) {
       warnedAboutTurkishVoice = true;
-      showSaveError(
-        "Bu cihazda Türkçe konuşma sesi bulunamadı. Ses kalitesi tarayıcıya göre değişebilir."
-      );
+      showSaveError("Bu cihazda Türkçe konuşma sesi bulunamadı. Uygulayıcı yönergeyi okuyabilir.");
     }
-
     const resetButton = () => resetSpeakButton(speakButton, requestId);
-
     utterance.onstart = () => {
       if (requestId === speechRequestId && speakButton.isConnected) {
         speakButton.textContent = "🔊 Dinleniyor...";
@@ -207,23 +205,21 @@
     utterance.onerror = event => {
       resetButton();
       if (event.error !== "canceled" && event.error !== "interrupted") {
-        showSaveError("Ses oynatılamadı. Lütfen tekrar deneyin.");
+        showSaveError("Ses oynatılamadı. Uygulayıcı yönergeyi okuyabilir.");
       }
     };
-
     window.speechSynthesis.speak(utterance);
   }
 
   async function playQuestionAudio(question, speakButton) {
     stopAudio();
+    audioPlayCount += 1;
     speakButton.disabled = true;
     speakButton.textContent = "🔊 Ses hazırlanıyor...";
-
     if (question.audioSrc) {
       await playRecordedAudio(question, speakButton);
       return;
     }
-
     if (question.speak) await speak(question, speakButton);
   }
 
@@ -232,9 +228,7 @@
   }
 
   function scrollToTestTop() {
-    window.requestAnimationFrame(() => {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   }
 
   function renderStageIntro(stage) {
@@ -243,17 +237,14 @@
     progressBar.style.width = `${(index / Math.max(questions.length, 1)) * 100}%`;
     questionArea.innerHTML = `
       <div class="stage-screen">
-        <div class="stage-icon" aria-hidden="true">${stage.icon || "▶️"}</div>
+        <div class="stage-icon" aria-hidden="true">${escapeHtml(stage.icon || "▶️")}</div>
         <p class="question-type">Bölüm ${stageIndex + 1}</p>
-        <h2 class="stage-title">${stage.title}</h2>
-        <p class="stage-description">${stage.description}</p>
-        <button id="stage-start-button" class="primary stage-start-button" type="button">
-          Bölüme Başla
-        </button>
-      </div>
-    `;
+        <h2 class="stage-title">${escapeHtml(stage.title)}</h2>
+        <p class="stage-description">${escapeHtml(stage.description)}</p>
+        <p class="stage-form-note">${escapeHtml(assessmentForm.notice)}</p>
+        <button id="stage-start-button" class="primary stage-start-button" type="button">Bölüme Başla</button>
+      </div>`;
     saveMessage.hidden = true;
-
     document.getElementById("stage-start-button").addEventListener("click", () => {
       shownStageIds.add(stage.id);
       renderQuestion();
@@ -263,21 +254,145 @@
 
   function optionMedia(option) {
     if (option.image) {
-      return `<img class="option-image" src="${option.image}" alt="" />`;
+      return `<img class="option-image" src="${escapeHtml(option.image)}" alt="" />`;
     }
-    return `<span class="option-emoji" aria-hidden="true">${option.emoji || ""}</span>`;
+    return `<span class="option-emoji" aria-hidden="true">${escapeHtml(option.emoji || "")}</span>`;
+  }
+
+  function renderAudioControl(question) {
+    if (!question.speak && !question.audioSrc) return "";
+    return `
+      <button id="speak-button" class="speak-button" type="button">${speakButtonText}</button>
+      <p class="audio-hint">Her dinleme kaydedilir. Gerekirse uygulayıcı yönergeyi aynı biçimde okuyabilir.</p>`;
+  }
+
+  function renderStimulus(question) {
+    if (!question.stimulus) return "";
+    if (question.stimulus.image) {
+      return `<div class="stimulus-card"><img src="${escapeHtml(question.stimulus.image)}" alt="${escapeHtml(question.stimulus.label || "")}" /></div>`;
+    }
+    return `
+      <div class="stimulus-card" role="img" aria-label="${escapeHtml(question.stimulus.label || "Görsel uyaran")}">
+        <span class="stimulus-emoji" aria-hidden="true">${escapeHtml(question.stimulus.emoji || "")}</span>
+      </div>`;
+  }
+
+  function renderSelectionQuestion(question) {
+    const optionsHtml = question.options.map(option => `
+      <button class="option" type="button" data-option="${escapeHtml(option.id)}" aria-label="${escapeHtml(option.label)}">
+        <span class="option-media">${optionMedia(option)}</span>
+        <span class="option-label${question.hideLabels ? " visually-hidden" : ""}">${escapeHtml(option.label)}</span>
+      </button>`).join("");
+    return `${renderAudioControl(question)}<div class="options options-${question.options.length}">${optionsHtml}</div>`;
+  }
+
+  function renderClinicianQuestion(question) {
+    return `
+      ${renderAudioControl(question)}
+      ${renderStimulus(question)}
+      <div class="clinician-panel">
+        <p><strong>Uygulayıcı puanlaması</strong></p>
+        <details class="clinician-guide">
+          <summary>Beklenen yanıt ve puanlama anahtarını göster</summary>
+          <p>${escapeHtml(question.expected)}</p>
+          <p>${escapeHtml(question.rubric)}</p>
+        </details>
+        <label for="cue-level">Yanıttan önce kullanılan en yüksek yardım düzeyi</label>
+        <select id="cue-level">
+          <option value="0">0 • Yardım yok / bağımsız yanıt</option>
+          <option value="1">1 • Yönerge bir kez tekrarlandı</option>
+          <option value="2">2 • Görsel alanı sadeleştirildi veya vurgulandı</option>
+          <option value="3">3 • Anlamsal ipucu ya da model verildi</option>
+        </select>
+        <div class="score-options" aria-label="Yanıt puanı">
+          <button class="score-option full" type="button" data-score="2">2 puan<br><small>Doğru</small></button>
+          <button class="score-option partial" type="button" data-score="1">1 puan<br><small>Kısmen doğru</small></button>
+          <button class="score-option zero" type="button" data-score="0">0 puan<br><small>Yanlış / yanıt yok</small></button>
+        </div>
+      </div>`;
+  }
+
+  async function saveAnswer(answer) {
+    const basePayload = {
+      session_id: sessionId,
+      question_id: answer.question_id,
+      category: answer.category,
+      selected_option: answer.selected,
+      correct_option: answer.correct_option,
+      is_correct: answer.is_correct,
+      response_time_ms: answer.response_time_ms,
+      answered_at: answer.answered_at
+    };
+    let payload = basePayload;
+    if (supportsExtendedResponses) {
+      payload = {
+        ...basePayload,
+        response_kind: answer.response_kind,
+        score: answer.score,
+        max_score: answer.max_score,
+        replay_count: answer.replay_count,
+        cue_level: answer.cue_level,
+        assisted_correct: answer.assisted_correct
+      };
+    }
+    let result = await window.TSA_DB
+      .from("responses")
+      .upsert(payload, { onConflict: "session_id,question_id" });
+
+    if (result.error && supportsExtendedResponses &&
+        /response_kind|score|max_score|replay_count|cue_level|assisted_correct|schema cache|column/i.test(result.error.message || "")) {
+      supportsExtendedResponses = false;
+      result = await window.TSA_DB
+        .from("responses")
+        .upsert(basePayload, { onConflict: "session_id,question_id" });
+    }
+    return result.error;
+  }
+
+  async function submitAnswer(question, shownAt, response) {
+    stopAudio();
+    questionArea.querySelectorAll("button, select").forEach(control => control.disabled = true);
+    const score = Number(response.score);
+    const maxScore = Number(response.max_score);
+    const cueLevel = Number(response.cue_level || 0);
+    const answer = {
+      question_id: question.id,
+      category: question.category,
+      selected: response.selected,
+      correct_option: response.correct_option,
+      response_kind: question.interaction || "select",
+      score,
+      max_score: maxScore,
+      is_correct: score === maxScore,
+      cue_level: cueLevel,
+      assisted_correct: cueLevel > 0 && score > 0,
+      replay_count: Math.max(0, audioPlayCount - 1),
+      response_time_ms: Math.round(performance.now() - shownAt),
+      answered_at: new Date().toISOString()
+    };
+    const error = await saveAnswer(answer);
+    if (error) {
+      console.error(error);
+      showSaveError("Cevap kaydedilemedi: " + error.message);
+      questionArea.querySelectorAll("button, select").forEach(control => control.disabled = false);
+      return;
+    }
+    answers.push(answer);
+    localStorage.setItem("tsa_answers", JSON.stringify(answers));
+    index += 1;
+    await renderQuestion();
   }
 
   async function renderQuestion() {
     stopAudio();
-
+    audioPlayCount = 0;
     if (index >= questions.length) {
       await finishTest();
       return;
     }
 
-    const q = questions[index];
-    const stage = getStage(q.stage);
+    const question = questions[index];
+    const stage = getStage(question.stage);
     if (stage && !shownStageIds.has(stage.id)) {
       renderStageIntro(stage);
       return;
@@ -288,111 +403,80 @@
       ? `Soru ${index + 1} / ${questions.length} • Bölüm ${stageIndex + 1} / ${stages.length}`
       : `${index + 1} / ${questions.length}`;
     progressBar.style.width = `${((index + 1) / questions.length) * 100}%`;
-
-    const optionsHtml = q.options.map(option => `
-      <button class="option" type="button" data-option="${option.id}">
-        <span class="option-media">${optionMedia(option)}</span>
-        <span class="option-label">${option.label}</span>
-      </button>
-    `).join("");
-
     questionArea.innerHTML = `
-      <div class="question-type">${q.category}</div>
-      <h2 class="question-title">${q.prompt}</h2>
-      ${(q.speak || q.audioSrc) ? `
-        <button id="speak-button" class="speak-button" type="button">${speakButtonText}</button>
-        <p class="audio-hint">Sesi gerektiğinde yeniden dinleyebilirsiniz.</p>
-      ` : ''}
-      <div class="options">${optionsHtml}</div>
-    `;
+      <div class="question-type">${escapeHtml(question.category)}</div>
+      <h2 class="question-title">${escapeHtml(question.prompt)}</h2>
+      ${question.interaction === "clinician-score"
+        ? renderClinicianQuestion(question)
+        : renderSelectionQuestion(question)}`;
     scrollToTestTop();
-
     saveMessage.hidden = true;
     const shownAt = performance.now();
 
-    if (q.speak || q.audioSrc) {
+    if (question.speak || question.audioSrc) {
       const speakButton = document.getElementById("speak-button");
-      speakButton.addEventListener("click", () => playQuestionAudio(q, speakButton));
+      speakButton.addEventListener("click", () => playQuestionAudio(question, speakButton));
       if (audioSettings.autoplay) {
-        autoplayTimer = setTimeout(() => playQuestionAudio(q, speakButton), 600);
+        autoplayTimer = setTimeout(() => playQuestionAudio(question, speakButton), 600);
       }
     }
 
+    if (question.interaction === "clinician-score") {
+      questionArea.querySelectorAll(".score-option").forEach(button => {
+        button.addEventListener("click", () => submitAnswer(question, shownAt, {
+          selected: `score_${button.dataset.score}`,
+          correct_option: "score_2",
+          score: Number(button.dataset.score),
+          max_score: 2,
+          cue_level: Number(document.getElementById("cue-level").value)
+        }));
+      });
+      return;
+    }
+
     questionArea.querySelectorAll(".option").forEach(button => {
-      button.addEventListener("click", async () => {
-        stopAudio();
-
-        const allButtons = questionArea.querySelectorAll(".option");
-        allButtons.forEach(btn => btn.disabled = true);
-
+      button.addEventListener("click", () => {
         const selected = button.dataset.option;
-        const responseTimeMs = Math.round(performance.now() - shownAt);
-        const answer = {
-          question_id: q.id,
-          category: q.category,
+        return submitAnswer(question, shownAt, {
           selected,
-          correct_option: q.correct,
-          is_correct: selected === q.correct,
-          response_time_ms: responseTimeMs,
-          answered_at: new Date().toISOString()
-        };
-
-        const { error } = await window.TSA_DB
-          .from("responses")
-          .upsert({
-            session_id: sessionId,
-            question_id: answer.question_id,
-            category: answer.category,
-            selected_option: answer.selected,
-            correct_option: answer.correct_option,
-            is_correct: answer.is_correct,
-            response_time_ms: answer.response_time_ms,
-            answered_at: answer.answered_at
-          }, { onConflict: "session_id,question_id" });
-
-        if (error) {
-          console.error(error);
-          showSaveError("Cevap kaydedilemedi: " + error.message);
-          allButtons.forEach(btn => btn.disabled = false);
-          return;
-        }
-
-        answers.push(answer);
-        localStorage.setItem("tsa_answers", JSON.stringify(answers));
-        index += 1;
-        await renderQuestion();
-      }, { once: true });
+          correct_option: question.correct,
+          score: selected === question.correct ? 1 : 0,
+          max_score: 1,
+          cue_level: 0
+        });
+      });
     });
   }
 
   async function finishTest() {
-    const correct = answers.filter(a => a.is_correct).length;
-
+    const totalPoints = answers.reduce((sum, answer) => sum + Number(answer.score || 0), 0);
+    const maxPoints = answers.reduce((sum, answer) => sum + Number(answer.max_score || 1), 0);
+    const correct = answers.filter(answer => answer.is_correct).length;
+    const completedAt = new Date().toISOString();
     const { error } = await window.TSA_DB
       .from("test_sessions")
-      .update({
-        status: "completed",
-        completed_at: new Date().toISOString()
-      })
+      .update({ status: "completed", completed_at: completedAt })
       .eq("id", sessionId);
-
     if (error) {
       console.error(error);
       showSaveError("Test tamamlandı ancak oturum durumu güncellenemedi: " + error.message);
       return;
     }
-
     const result = {
       participant_code: participantCode,
       session_id: sessionId,
+      assessment_form: assessmentForm.id,
+      form_label: assessmentForm.label,
+      profile_label: assessmentForm.profileLabel,
       total: questions.length,
       correct,
-      percentage: Math.round((correct / questions.length) * 100),
+      total_points: totalPoints,
+      max_points: maxPoints,
+      percentage: maxPoints ? Math.round((totalPoints / maxPoints) * 100) : 0,
       started_at: localStorage.getItem("tsa_started_at"),
-      completed_at: new Date().toISOString(),
+      completed_at: completedAt,
       answers
     };
-
     localStorage.setItem("tsa_result", JSON.stringify(result));
     window.location.href = "result.html";
   }
@@ -401,9 +485,7 @@
     stopAudio();
     window.location.href = "index.html";
   });
-
   window.addEventListener("beforeunload", stopAudio);
-
   requireAuth().then(ok => {
     if (ok) renderQuestion();
   });
